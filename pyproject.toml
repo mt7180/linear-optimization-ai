@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=67.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-optimizer"
+version = "1.0.0"
+dependencies = [
+    "streamlit",
+    "marvin",
+    "pyomo",
+    "pydantic",
+    "highspy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "isort"
+]
