@@ -7,10 +7,11 @@ name = "llm-optimizer"
 version = "1.0.0"
 dependencies = [
     "streamlit",
-    "marvin",
     "pyomo",
     "pydantic",
     "highspy",
+    "instructor>=1.4.0",
+    "pydantic-settings"
 ]
 
 [project.optional-dependencies]
