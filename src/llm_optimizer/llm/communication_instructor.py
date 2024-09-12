@@ -6,8 +6,8 @@ from pydantic import ValidationError
 
 import logging
 
-from src.llm_optimizer.models.llm import LinearOptimizationModel, ValidationAnswer
-from src.llm_optimizer.models.base import AppSettings
+from llm_optimizer.models.llm import LinearOptimizationModel, ValidationAnswer
+from llm_optimizer.models.base import AppSettings
 
 
 SETTINGS = AppSettings()
@@ -37,7 +37,7 @@ def generate_pyomo_model(
         logging.debug(f"The user input describes a valid linear optimization problem: {is_optimization_problem}")
 
         if not is_optimization_problem.valid:
-            raise ValueError(f"Optimization problem not valid, reason: {is_optimization_problem.reason}")
+            raise ValidationError(f"Optimization problem not valid, reason: {is_optimization_problem.reason}")
     
     pyomo_model: LinearOptimizationModel = extract_pyomo_model(
         user_input, 
@@ -83,7 +83,8 @@ def extract_pyomo_model(
     
     prompt = inspect.cleandoc(f'''
         You are an AI assistant tasked with transfering a clients linear 
-        optimization task into a python/ pyomo code snippet. Please use
+        optimization task into a mathematical formulation and a 
+        python/ pyomo code snippet. Please use
         only the following pyomo modeling components to carefully define
         the pyomo model for the given optimization task. Please try to
         make the model as compact and pythonic as possible while staying 
@@ -111,7 +112,7 @@ def extract_pyomo_model(
 #         creating a
 
     return client.chat.completions.create(
-        max_retries=1,
+        max_retries=2,
         model= "gpt-4o",
         response_model= LinearOptimizationModel,
         max_tokens=settings.get("max_tokens", 1024),
@@ -124,6 +125,32 @@ def extract_pyomo_model(
         ]
     )
 
+def ask_llm_for_pyomo_model(
+    problem_formulation: str,
+    validate_input: bool=True,
+    max_retries: int=1,
+    mock: bool = False,
+) -> LinearOptimizationModel:
+    
+    if mock:
+        import json
+        from pathlib import Path
+        cwd = Path(__file__).parent.parent
+        with open(cwd / 'calculations' / 'mock_instructor.json', 'r') as file:
+            mocked_response = LinearOptimizationModel(**json.load(file))
+        return mocked_response
+
+    for _ in range(max_retries):
+        try:
+            structured_response = generate_pyomo_model(problem_formulation, validate_input=validate_input)
+            logging.debug(structured_response.model_dump_json(indent=2))
+        except ValidationError as e:
+            logging.debug(e.args)
+            return LinearOptimizationModel()
+        else:
+            break
+ 
+    return structured_response 
 
 
 if __name__ == "__main__":
