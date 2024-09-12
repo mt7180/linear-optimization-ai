@@ -2,9 +2,9 @@ import logging
 import pyomo.environ as pyo
 import re
 
-from src.llm_optimizer.models.llm import LinearOptimizationModel
-from src.llm_optimizer.utils.helpers import parse_rule
-from src.llm_optimizer.models.llm import RuleError
+from llm_optimizer.models.llm import LinearOptimizationModel
+from llm_optimizer.utils.helpers import parse_rule
+from llm_optimizer.models.llm import RuleError
 
 
 def create_concrete_model():
@@ -14,12 +14,10 @@ def create_set(model, name, initialize, doc=''):
     logging.debug(f"creating set {name}")
     setattr(model, name, pyo.Set(initialize=initialize, doc=doc))
 
-def create_var(model, name, index, domain, doc=''):
-    print("test: ", *[get_index(model, idx) for idx in [index] if idx])
-    setattr(model, name, pyo.Var(*[get_index(model, idx) for idx in [index] if idx],domain=get_domain(domain), doc=doc))
+def create_var(model, name, indexes, domain, doc=''):
+    setattr(model, name, pyo.Var(*[get_index(model, index) for index in indexes if index],domain=get_domain(domain), doc=doc))
 
 def create_param(model, name, indexes, initialize, within, doc=''):
-    print("test2: ", *[get_index(model, index) for index in indexes if index])
     setattr(model, name, pyo.Param(*[get_index(model, index) for index in indexes if index], initialize=initialize, within=get_domain(within), doc=doc ))
 
 def get_objective_rule(expr_str):
@@ -51,7 +49,7 @@ def create_constraint(idx_strs, model, name, rule, doc):
 
 
 def construct_pyomo_model(llm_pyomo_model: LinearOptimizationModel) -> pyo.ConcreteModel:
-    model = create_concrete_model()
+    model: pyo.ConcreteModel = create_concrete_model()
     for pyo_set in llm_pyomo_model.sets:
         logging.debug(f"creating set: {pyo_set}")
         create_set(model, *pyo_set.model_dump().values())
@@ -91,9 +89,15 @@ def construct_pyomo_model(llm_pyomo_model: LinearOptimizationModel) -> pyo.Concr
     
     objective_sense = pyo.maximize if llm_pyomo_model.objective.optimization_sense.value == "maximize" else pyo.minimize
     model.my_objective = pyo.Objective(rule=objective_rule["func"], sense=objective_sense)
-    
+    model
     return model
     
+def solve(pyomo_model: pyo.ConcreteModel) -> pyo.ConcreteModel:
+    optimizer = pyo.SolverFactory('appsi_highs')
+    logging.debug("starting to solve ...")
+    results = optimizer.solve(pyomo_model)
+    logging.debug(results.write())
+    return pyomo_model
 
 if __name__ == "__main__":
     import json
@@ -106,7 +110,5 @@ if __name__ == "__main__":
         llm_pyomo_model = LinearOptimizationModel(**json.load(file))
 
     model = construct_pyomo_model(llm_pyomo_model)
-    optimizer = pyo.SolverFactory('appsi_highs')
-    logging.debug("starting to solve ...")
-    result = optimizer.solve(model)
+    solve(model)
     model.pprint()
