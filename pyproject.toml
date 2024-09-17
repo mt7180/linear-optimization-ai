@@ -11,10 +11,13 @@ dependencies = [
     "pydantic",
     "highspy",
     "instructor>=1.4.0",
-    "pydantic-settings"
+    "pydantic-settings",
+    "pre-commit"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "ruff",
+    "isort"
 ]

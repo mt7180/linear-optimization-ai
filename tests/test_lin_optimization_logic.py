@@ -1,13 +1,11 @@
-import json
-from pathlib import Path
 import pyomo.environ as pyo
-import pytest
 from unittest.mock import MagicMock, patch
 
 from llm_optimizer.calculations.lin_optimization_logic import (
     construct_pyomo_model,
     solve,
 )
+
 
 def test_construct_pyomo_model(structured_llm_response):
     model = construct_pyomo_model(structured_llm_response)
@@ -31,7 +29,3 @@ def test_solve(mock_solver_factory):
     assert isinstance(solution, pyo.ConcreteModel)
     assert solution == model
     mock_results.write.assert_called_once()
-
-    
-    
-  
