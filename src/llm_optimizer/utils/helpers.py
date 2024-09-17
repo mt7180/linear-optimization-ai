@@ -115,7 +115,7 @@ def check_if_expression_is_safe(expr: str, allowed_vars: Collection[str]) -> boo
         return False
 
 def parse_rule(expression: str, allowed_vars: Collection[str]) -> dict[str, Any]:
-    """check and eval mathematical expression e.g. for pyomo rule"""
+    """check and eval mathematical expression or lambda function"""
     logging.debug(f"{expression=}, {allowed_vars=}")
 
     if "lambda" in expression:
@@ -148,5 +148,5 @@ if __name__ == "__main__":
 
     rule = parse_rule(expression2, allowed_vars2)
     
-    print(type(rule))
+    print(type(rule["func"]))
 
