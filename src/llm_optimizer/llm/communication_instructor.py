@@ -18,42 +18,42 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def generate_pyomo_model(
-        user_input: str,
-        validate_input: bool =True,
-    ) -> LinearOptimizationModel:
-
+    user_input: str,
+    validate_input: bool = True,
+) -> LinearOptimizationModel:
     client: instructor.Instructor = instructor.from_openai(
         openai.OpenAI(api_key=SETTINGS.OPENAI_API_KEY),
-        mode=instructor.Mode.JSON, #.TOOLS,
+        mode=instructor.Mode.JSON,  # .TOOLS,
     )
 
     llm_prompt_settings = {
-        "temperature" : 0.2,
-        "max_tokens" : 2048,
+        "temperature": 0.2,
+        "max_tokens": 2048,
     }
-    
+
     if validate_input:
         is_optimization_problem = validate_optimization_problem(user_input, client)
-        logging.debug(f"The user input describes a valid linear optimization problem: {is_optimization_problem}")
+        logging.debug(
+            f"The user input describes a valid linear optimization problem: {is_optimization_problem}"
+        )
 
         if not is_optimization_problem.valid:
-            raise ValidationError(f"Optimization problem not valid, reason: {is_optimization_problem.reason}")
-    
+            raise ValidationError(
+                f"Optimization problem not valid, reason: {is_optimization_problem.reason}"
+            )
+
     pyomo_model: LinearOptimizationModel = extract_pyomo_model(
-        user_input, 
-        client, 
-        llm_prompt_settings
+        user_input, client, llm_prompt_settings
     )
     pyomo_model.problem_str = user_input
 
     # logging.debug(pyomo_model.model_dump_json(indent=2))
     return pyomo_model
 
+
 def validate_optimization_problem(
-        user_input: str, 
-        client:instructor.Instructor
-    ) -> ValidationAnswer:
-   
+    user_input: str, client: instructor.Instructor
+) -> ValidationAnswer:
     prompt = inspect.cleandoc(f'''
     Your job is to validate the given input and check wether it can be mathematically modeled
     by an optimization model whose requirements and objective are represented 
@@ -65,7 +65,7 @@ def validate_optimization_problem(
 
     return client.chat.completions.create(
         max_retries=1,
-        model= "gpt-3.5-turbo",
+        model="gpt-3.5-turbo",
         response_model=ValidationAnswer,
         temperature=0,
         messages=[
@@ -73,15 +73,15 @@ def validate_optimization_problem(
                 "role": "user",
                 "content": prompt,
             }
-        ]
+        ],
     )
 
+
 def extract_pyomo_model(
-        user_input: str,
-        client: instructor.Instructor,
-        settings: dict,
-    ) -> LinearOptimizationModel:
-    
+    user_input: str,
+    client: instructor.Instructor,
+    settings: dict,
+) -> LinearOptimizationModel:
     prompt = inspect.cleandoc(f'''
         You are an AI assistant tasked with transfering a clients linear 
         optimization task into a mathematical formulation and a 
@@ -108,15 +108,15 @@ def extract_pyomo_model(
         """
     ''')
 
-# Also try to use integer values for the pyomo set(s) to make it easier to formulate rules and expressions.
-# - You can assume, that pyomo is imported as `pyomo`.
-# You are a world class optimization and pyomo expert. Give your best in 
-#         creating a
+    # Also try to use integer values for the pyomo set(s) to make it easier to formulate rules and expressions.
+    # - You can assume, that pyomo is imported as `pyomo`.
+    # You are a world class optimization and pyomo expert. Give your best in
+    #         creating a
 
     return client.chat.completions.create(
         max_retries=2,
-        model= "gpt-4o",
-        response_model= LinearOptimizationModel,
+        model="gpt-4o",
+        response_model=LinearOptimizationModel,
         max_tokens=settings.get("max_tokens", 1024),
         temperature=settings.get("temperature", 0.2),
         messages=[
@@ -124,35 +124,38 @@ def extract_pyomo_model(
                 "role": "user",
                 "content": prompt,
             }
-        ]
+        ],
     )
+
 
 def ask_llm_for_pyomo_model(
     problem_formulation: str,
-    validate_input: bool=True,
-    max_retries: int=1,
+    validate_input: bool = True,
+    max_retries: int = 1,
     mock: bool = False,
 ) -> LinearOptimizationModel:
-    
     if mock:
         import json
         from pathlib import Path
+
         cwd = Path(__file__).parent.parent.parent.parent
-        with open(cwd  / 'tests' / 'mock_llm_response_complex.json', 'r') as file:
+        with open(cwd / "tests" / "mock_llm_response_complex.json", "r") as file:
             mocked_response = LinearOptimizationModel(**json.load(file))
         return mocked_response
 
     for _ in range(max_retries):
         try:
-            structured_response = generate_pyomo_model(problem_formulation, validate_input=validate_input)
+            structured_response = generate_pyomo_model(
+                problem_formulation, validate_input=validate_input
+            )
             logging.debug(structured_response.model_dump_json(indent=2))
         except ValidationError as e:
             logging.debug(e.args)
             return LinearOptimizationModel()
         else:
             break
- 
-    return structured_response 
+
+    return structured_response
 
 
 if __name__ == "__main__":
@@ -165,19 +168,22 @@ if __name__ == "__main__":
     Each full-time employee must work 5 consecutive days and then has 2 days off.
     Minimize the total number of full-time employees you need to hire. 
     """
-    pie_eating_contest="""Max is in a pie eating contest that lasts 1 hour. Each torte
+    pie_eating_contest = """Max is in a pie eating contest that lasts 1 hour. Each torte
     that he eats takes 2 minutes. Each apple pie that he eats takes 3 minutes. 
     He receives 4 points for each torte and 5 points for each pie.
     What should Max eat so as to get the most points?
     """
 
     try:
-        pyomo_model = generate_pyomo_model(post_office_optimization_task, validate_input=False)
+        pyomo_model = generate_pyomo_model(
+            post_office_optimization_task, validate_input=False
+        )
         print(pyomo_model.model_dump_json(indent=2))
-        with open(Path(__file__).parent.parent / "calculations/mock_instructor.json","w" ) as f:
+        with open(
+            Path(__file__).parent.parent / "calculations/mock_instructor.json", "w"
+        ) as f:
             f.writelines(pyomo_model.model_dump_json(indent=2))
     except ValidationError as e:
         print(e)
     except ValueError as e:
         print(e.args)
-    
