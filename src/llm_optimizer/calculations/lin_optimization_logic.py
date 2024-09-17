@@ -15,10 +15,10 @@ def create_set(model, name, initialize, doc=''):
     setattr(model, name, pyo.Set(initialize=initialize, doc=doc))
 
 def create_var(model, name, indexes, domain, doc=''):
-    setattr(model, name, pyo.Var(*[get_index(model, index) for index in indexes if index],domain=get_domain(domain), doc=doc))
+    setattr(model, name, pyo.Var(*[get_index(model, index) for index in (indexes or []) if index],domain=get_domain(domain), doc=doc))
 
 def create_param(model, name, indexes, initialize, within, doc=''):
-    setattr(model, name, pyo.Param(*[get_index(model, index) for index in indexes if index], initialize=initialize, within=get_domain(within), doc=doc ))
+    setattr(model, name, pyo.Param(*[get_index(model, index) for index in (indexes or []) if index], initialize=initialize, within=get_domain(within), doc=doc ))
 
 def get_objective_rule(expr_str):
     pattern = r"model\.\w+"
@@ -89,7 +89,7 @@ def construct_pyomo_model(llm_pyomo_model: LinearOptimizationModel) -> pyo.Concr
     
     objective_sense = pyo.maximize if llm_pyomo_model.objective.optimization_sense.value == "maximize" else pyo.minimize
     model.my_objective = pyo.Objective(rule=objective_rule["func"], sense=objective_sense)
-    model
+    #model
     return model
     
 def solve(pyomo_model: pyo.ConcreteModel) -> pyo.ConcreteModel:
@@ -97,7 +97,7 @@ def solve(pyomo_model: pyo.ConcreteModel) -> pyo.ConcreteModel:
     logging.debug("starting to solve ...")
     results = optimizer.solve(pyomo_model)
     logging.debug(results.write())
-    return pyomo_model
+    return results, pyomo_model
 
 if __name__ == "__main__":
     import json

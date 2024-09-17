@@ -44,6 +44,7 @@ def generate_pyomo_model(
         client, 
         llm_prompt_settings
     )
+    pyomo_model.problem_str = user_input
 
     # logging.debug(pyomo_model.model_dump_json(indent=2))
     return pyomo_model
@@ -99,7 +100,8 @@ def extract_pyomo_model(
         - for any rule only python lambda functions should be used.
         """
         
-        Please be thorough and provide the response in the given response format.
+        Please be thorough and provide the response in the given response format. 
+        Remember to start pyomo indexes with 1, not 0.
                                                 
         optimization task: """
         {user_input}
@@ -135,8 +137,8 @@ def ask_llm_for_pyomo_model(
     if mock:
         import json
         from pathlib import Path
-        cwd = Path(__file__).parent.parent
-        with open(cwd / 'calculations' / 'mock_instructor.json', 'r') as file:
+        cwd = Path(__file__).parent
+        with open(cwd  / 'mock_llm_response_complex.json', 'r') as file:
             mocked_response = LinearOptimizationModel(**json.load(file))
         return mocked_response
 

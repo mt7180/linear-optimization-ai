@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Any, Optional, Sequence, Union
 from pydantic import BaseModel, Field, field_validator
+from pydantic.json_schema import SkipJsonSchema
 
 
 class ValidationAnswer(BaseModel):
@@ -17,7 +18,7 @@ class RuleError(Exception):
     
 
 class Rule(BaseModel):
-    lambda_arguments: list[str] = Field(..., description="lambda function arguments")
+    lambda_arguments: list[str] = Field(default_factory=list, description="lambda function arguments")
     lambda_body: str = Field(..., description="lambda function body") #, variables must be attributes of the `model` instance and/ or function arguments")
     
 
@@ -29,7 +30,7 @@ class PyomoSet(BaseModel):
 
 class PyomoVar(BaseModel):
     name: str
-    indexes: Optional[list[str]] = Field(..., description="Optional list of indexes (yomo set names)")
+    indexes: list[str] = Field(default_factory=list, description="Optional list of indexes (pyomo set names)")
     domain: Optional[str] = Field(...,description="name of a pyomo Set that defines valid values for this var")
    # within: Optional[str] = Field(default=None)
     doc: str = Field(..., description="short description")
@@ -89,6 +90,7 @@ class LinearOptimizationModel(BaseModel):
     parameters: list[PyomoParam] = Field(..., description="list of indexed pyomo parameters, providing additional data to the pyomo model") # in order to find an optimal assignment of values to the decision variables")
     variables: list[PyomoVar] = Field(..., description="pyomo variables for the pyomo objective/ model")
     constraints: list[PyomoConstraint] = Field(...,description="list of pyomo model constraints, each defined as `pyo.Constraint()'")
+    problem_str: SkipJsonSchema[Union[str, None]] = None
     #error_message: str = Field(..., description="Error message, if it is not possible to correctly formulate the pyomo model with the given return type structure")
 
 class MaybeLinearOptimizationModel(BaseModel):
