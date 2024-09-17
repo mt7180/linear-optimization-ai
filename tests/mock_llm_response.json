@@ -1,0 +1,90 @@
+{
+  "mathematical_formulation": "\\begin{align*} \\text{Maximize} \\quad & 270x - 100x - 50A - 40B \\\\ \\text{subject to} \\quad & x \\leq 40 \\\\ & A \\geq x \\\\ & B \\geq 2x \\\\ & A \\leq 80 \\\\ & B \\leq 100 \\\\ & x, A, B \\geq 0 \\end{align*}",
+  "objective": {
+    "indexes": null,
+    "expr": "270 * model.x - 100 * model.x - 50 * model.A - 40 * model.B",
+    "rule": null,
+    "optimization_sense": "maximize",
+    "doc": "Maximize weekly profit"
+  },
+  "sets": [],
+  "parameters": [],
+  "variables": [
+    {
+      "name": "x",
+      "indexes": [],
+      "domain": "NonNegativeReals",
+      "doc": "Number of units of Product X to produce"
+    },
+    {
+      "name": "A",
+      "indexes": [],
+      "domain": "NonNegativeReals",
+      "doc": "Hours of type A labor used"
+    },
+    {
+      "name": "B",
+      "indexes": [],
+      "domain": "NonNegativeReals",
+      "doc": "Hours of type B labor used"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "MarketDemand",
+      "idxs": [],
+      "rule": {
+        "lambda_arguments": [
+          "model"
+        ],
+        "lambda_body": "model.x <= 40"
+      },
+      "doc": "Market demand constraint"
+    },
+    {
+      "name": "LaborARequirement",
+      "idxs": [],
+      "rule": {
+        "lambda_arguments": [
+          "model"
+        ],
+        "lambda_body": "model.A >= model.x"
+      },
+      "doc": "Type A labor requirement constraint"
+    },
+    {
+      "name": "LaborBRequirement",
+      "idxs": [],
+      "rule": {
+        "lambda_arguments": [
+          "model"
+        ],
+        "lambda_body": "model.B >= 2 * model.x"
+      },
+      "doc": "Type B labor requirement constraint"
+    },
+    {
+      "name": "LaborALimit",
+      "idxs": [],
+      "rule": {
+        "lambda_arguments": [
+          "model"
+        ],
+        "lambda_body": "model.A <= 80"
+      },
+      "doc": "Type A labor availability constraint"
+    },
+    {
+      "name": "LaborBLimit",
+      "idxs": [],
+      "rule": {
+        "lambda_arguments": [
+          "model"
+        ],
+        "lambda_body": "model.B <= 100"
+      },
+      "doc": "Type B labor availability constraint"
+    }
+  ],
+  "problem_str": "Suppose you are thinking about starting up a business to produce Product X. You have determined there is a market for X of up to 40 units per week at a price of USD 270 each. The production of each unit requires USD 100 of raw materials, 1 hour of type A labor, and 2 hours of type B labor. You have an unlimited amount of raw material available to you, but only 80 hours per week of labor A at a cost of USD 50/hour, and 100 hours per week of labor B at a cost of USD 40 per hour. Ignoring all other expenses, what is the maximum weekly profit?"
+}

@@ -3,6 +3,5 @@
 venv
 .env
 *.pyc
-mock*
 *.egg-info
 *notes*

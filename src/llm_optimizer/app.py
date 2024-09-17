@@ -25,7 +25,7 @@ if submit_button:
          task,
          validate_input=False,
          max_retries=1,
-         mock=False
+         mock=True
       )
 
       pyomo_model = construct_pyomo_model(structured_llm_response)

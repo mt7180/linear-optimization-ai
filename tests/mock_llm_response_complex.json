@@ -1,0 +1,148 @@
+{
+    "mathematical_formulation": "\\begin{align*}\n\\text{Minimize} \\quad & \\sum_{i \\in I, j \\in J} c_{ij} x_{ij} \\\\\n\\text{subject to} \\quad & \\sum_{j \\in J} x_{ij} = d_i & \\forall i \\in I \\\\\n& \\sum_{i \\in I} x_{ij} \\leq s_j & \\forall j \\in J \\\\\n& x_{ij} \\geq 0 & \\forall i \\in I, \\forall j \\in J\n\\end{align*}",
+    "objective": {
+      "indexes": [
+        "I",
+        "J"
+      ],
+      "expr": "sum(model.c[i, j] * model.x[i, j] for i in model.I for j in model.J)",
+      "rule": null,
+      "optimization_sense": "minimize",
+      "doc": "Minimize total delivery cost"
+    },
+    "sets": [
+      {
+        "name": "I",
+        "initialize": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "doc": "Set of destinations"
+      },
+      {
+        "name": "J",
+        "initialize": [
+          1,
+          2,
+          3
+        ],
+        "doc": "Set of terminals"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "d",
+        "indexes": [
+          "I"
+        ],
+        "initialize": {
+          "1": 30000,
+          "2": 40000,
+          "3": 50000,
+          "4": 20000,
+          "5": 30000,
+          "6": 45000,
+          "7": 80000,
+          "8": 18000
+        },
+        "within": "NonNegativeReals",
+        "doc": "Demand at each destination"
+      },
+      {
+        "name": "s",
+        "indexes": [
+          "J"
+        ],
+        "initialize": {
+          "1": 100000,
+          "2": 80000,
+          "3": 500000
+        },
+        "within": "NonNegativeReals",
+        "doc": "Supply at each terminal"
+      },
+      {
+        "name": "c",
+        "indexes": [
+          "I",
+          "J"
+        ],
+        "initialize": {
+          "1,1": 8.3,
+          "1,2": 10.2,
+          "1,3": 8.75,
+          "2,1": 8.1,
+          "2,2": 12.0,
+          "2,3": 8.75,
+          "3,1": 8.3,
+          "3,2": 100.0,
+          "3,3": 8.75,
+          "4,1": 9.3,
+          "4,2": 8.0,
+          "4,3": 8.75,
+          "5,1": 10.1,
+          "5,2": 10.0,
+          "5,3": 8.75,
+          "6,1": 9.8,
+          "6,2": 10.0,
+          "6,3": 8.75,
+          "7,1": 100.0,
+          "7,2": 8.0,
+          "7,3": 8.75,
+          "8,1": 7.5,
+          "8,2": 10.0,
+          "8,3": 8.75
+        },
+        "within": "NonNegativeReals",
+        "doc": "Cost per gallon from each terminal to each destination"
+      }
+    ],
+    "variables": [
+      {
+        "name": "x",
+        "indexes": [
+          "I",
+          "J"
+        ],
+        "domain": "NonNegativeReals",
+        "doc": "Amount of gasoline delivered from terminal j to destination i"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "DemandConstraint",
+        "idxs": [
+          "I"
+        ],
+        "rule": {
+          "lambda_arguments": [
+            "model",
+            "i"
+          ],
+          "lambda_body": "sum(model.x[i, j] for j in model.J) == model.d[i]"
+        },
+        "doc": "Demand must be met at each destination"
+      },
+      {
+        "name": "SupplyConstraint",
+        "idxs": [
+          "J"
+        ],
+        "rule": {
+          "lambda_arguments": [
+            "model",
+            "j"
+          ],
+          "lambda_body": "sum(model.x[i, j] for i in model.I) <= model.s[j]"
+        },
+        "doc": "Supply limit at each terminal"
+      }
+    ],
+    "problem_str": "YaYa Gas-n-Grub is franchiser and operator for a network of regional convenience stores selling gasoline and convenience items in the United States. Each store is individually owned by a YaYa Gas-n-Grub franchisee who pays a fee to the franchiser for services. Gasoline is delivered by truck from regional distribution terminals. Each delivery truck carries 8,000 gallons delivered at a fixed charge of 700€ per delivery, or 0.0875€ per gallon. The franchise owners are eager to reduce delivery costs to boost profits. YaYa Gas-n-Grub decides to accept proposals from other distribution terminals, “A” and “B”, to supply the franchise operators. Rather than a fixed fee per delivery, they proposed pricing based on location. But they already have existing customers, “A” and “B” can only provide a limited amount of gasoline to new customers totaling 100,000 and 80,000 gallons respectively. The only difference between the new suppliers and the current supplier is the delivery charge.\n\nThe following chart shows the pricing of gasoline delivery in cents/gallon.\nMinimize total delivery cost.\ndata:\n\"\"\"\nrates = pd.DataFrame(\n    [\n        [\"Alice\", 8.3, 10.2, 8.75],\n        [\"Badri\", 8.1, 12.0, 8.75],\n        [\"Cara\", 8.3, 100.0, 8.75],\n        [\"Dan\", 9.3, 8.0, 8.75],\n        [\"Emma\", 10.1, 10.0, 8.75],\n        [\"Fujita\", 9.8, 10.0, 8.75],\n        [\"Grace\", 100, 8.0, 8.75],\n        [\"Helen\", 7.5, 10.0, 8.75],\n    ],\n    columns=[\"Destination\", \"Terminal A\", \"Terminal B\", \"Current Supplier\"],\n).set_index(\"Destination\")\n\ndemand = pd.Series(\n    {\n        \"Alice\": 30000,\n        \"Badri\": 40000,\n        \"Cara\": 50000,\n        \"Dan\": 20000,\n        \"Emma\": 30000,\n        \"Fujita\": 45000,\n        \"Grace\": 80000,\n        \"Helen\": 18000,\n    },\n    name=\"demand\",\n)\n\nsupply = pd.Series(\n    {\"Terminal A\": 100000, \"Terminal B\": 80000, \"Current Supplier\": 500000},\n    name=\"supply\",\n)\n\"\"\"\n"
+  }

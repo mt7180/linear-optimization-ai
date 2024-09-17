@@ -137,8 +137,8 @@ def ask_llm_for_pyomo_model(
     if mock:
         import json
         from pathlib import Path
-        cwd = Path(__file__).parent
-        with open(cwd  / 'mock_llm_response_complex.json', 'r') as file:
+        cwd = Path(__file__).parent.parent.parent.parent
+        with open(cwd  / 'tests' / 'mock_llm_response_complex.json', 'r') as file:
             mocked_response = LinearOptimizationModel(**json.load(file))
         return mocked_response
 
