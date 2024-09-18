@@ -6,8 +6,8 @@ from llm_optimizer.calculations.lin_optimization_logic import (
 )
 
 
-def test_integration_successful(structured_llm_response):
-    pyomo_model = construct_pyomo_model(structured_llm_response)
+def test_integration_successful(mock_llm_response):
+    pyomo_model = construct_pyomo_model(mock_llm_response)
     results, solution = solve(pyomo_model)
 
     assert solution is not None

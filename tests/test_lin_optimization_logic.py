@@ -7,8 +7,8 @@ from llm_optimizer.calculations.lin_optimization_logic import (
 )
 
 
-def test_construct_pyomo_model(structured_llm_response):
-    model = construct_pyomo_model(structured_llm_response)
+def test_construct_pyomo_model(mock_llm_response):
+    model = construct_pyomo_model(mock_llm_response)
     assert isinstance(model, pyo.ConcreteModel)
     assert hasattr(model, "my_objective")
 
