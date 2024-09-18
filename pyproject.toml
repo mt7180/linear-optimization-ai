@@ -21,3 +21,11 @@ dev = [
     "ruff",
     "isort"
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks integration tests (deselect with '-m not integration')",
+]
+# addopts = [
+#    '-m not integration'
+# ]

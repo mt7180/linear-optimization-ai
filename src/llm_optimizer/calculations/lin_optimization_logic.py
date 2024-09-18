@@ -75,6 +75,11 @@ def create_constraint(idx_strs, model, name, rule, doc):
 def construct_pyomo_model(
     llm_pyomo_model: LinearOptimizationModel,
 ) -> pyo.ConcreteModel:
+    if not isinstance(llm_pyomo_model, LinearOptimizationModel):
+        raise TypeError
+    if not llm_pyomo_model.variables:
+        raise ValueError
+
     model: pyo.ConcreteModel = create_concrete_model()
     for pyo_set in llm_pyomo_model.sets:
         logging.debug(f"creating set: {pyo_set}")
