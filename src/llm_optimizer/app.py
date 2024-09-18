@@ -24,7 +24,7 @@ if submit_button:
 
     else:
         structured_llm_response: LinearOptimizationModel = ask_llm_for_pyomo_model(
-            task, validate_input=False, max_retries=1, mock=False
+            task, validate_input=False, max_retries=1, mock=True
         )
 
         pyomo_model = construct_pyomo_model(structured_llm_response)
