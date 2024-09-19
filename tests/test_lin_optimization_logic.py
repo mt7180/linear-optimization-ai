@@ -24,91 +24,48 @@ def test_construct_pyomo_model_wrong_input_type():
         construct_pyomo_model(dict())
 
 
-def test_construct_pyomo_model_no_objective():
-    input = """
-        {
-            "mathematical_formulation": "",
-            "objective": null,
-            "sets": [],
-            "parameters": [],
-            "variables": [],
-            "constraints": [],
-            "problem_str": ""
-        }
-    """
+def test_construct_pyomo_model_no_objective(llm_response_format):
+    input = llm_response_format(objective="null")
+
     with pytest.raises(ValidationError):
         construct_pyomo_model(LinearOptimizationModel(**json.loads(input)))
 
 
-def test_construct_pyomo_model_wrong_optimization_sense():
-    input = """
-        {
-            "mathematical_formulation": "",
-            "objective": {
-                "indexes": null,
-                "expr": null,
-                "rule": null,
-                "optimization_sense": "wrong_value",
-                "doc": ""
-            },
-            "sets": [],
-            "parameters": [],
-            "variables": [],
-            "constraints": [],
-            "problem_str": ""
-        }
-    """
+def test_construct_pyomo_model_wrong_optimization_sense(llm_response_format):
+    input = llm_response_format(
+        objective="""{
+        "indexes": null,
+        "expr": "model.x",
+        "rule": null,
+        "optimization_sense": "wrong_value",
+        "doc": ""
+    }"""
+    )
+
+    print(input)
+
     with pytest.raises(ValidationError):
         construct_pyomo_model(LinearOptimizationModel(**json.loads(input)))
 
 
-def test_construct_pyomo_model_no_objective_rule():
-    input = """
-        {
-            "mathematical_formulation": "",
-            "objective": {
-                "indexes": null,
-                "expr": null,
-                "rule": null,
-                "optimization_sense": "maximize",
-                "doc": ""
-            },
-            "sets": [],
-            "parameters": [],
-            "variables": [
-                {
-                    "name": "x",
-                    "indexes":[],
-                    "domain": null,
-                    "doc": ""
-                }
-            ],
-            "constraints": [],
-            "problem_str": ""
-        }
-    """
+def test_construct_pyomo_model_no_objective_rule(llm_response_format):
+    input = llm_response_format(
+        objective="""{
+        "indexes": null,
+        "expr": null,
+        "rule": null,
+        "optimization_sense": "maximize",
+        "doc": ""
+    }"""
+    )
+
     with pytest.raises(RuleError):
         construct_pyomo_model(LinearOptimizationModel(**json.loads(input)))
 
 
-def test_construct_pyomo_model_no_var():
-    input = """
-        {
-            "mathematical_formulation": "",
-            "objective": {
-                "indexes": null,
-                "expr": model.x,
-                "rule": null,
-                "optimization_sense": "maximize",
-                "doc": ""
-            },
-            "sets": [],
-            "parameters": [],
-            "variables": [],
-            "constraints": [],
-            "problem_str": ""
-        }
-    """
+def test_construct_pyomo_model_no_var(llm_response_format):
+    input = llm_response_format(variables="[]")
+
     with pytest.raises(ValueError):
         construct_pyomo_model(LinearOptimizationModel(**json.loads(input)))
 
