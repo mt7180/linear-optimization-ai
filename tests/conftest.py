@@ -1,9 +1,14 @@
+import instructor
 import json
+import openai
+import os
 from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
+from unittest.mock import MagicMock
 
 from llm_optimizer.models.llm import LinearOptimizationModel
+from llm_optimizer.models.base import AppSettings
 
 
 @pytest.fixture()
@@ -51,3 +56,25 @@ def llm_response_format():
         """
 
     return factory
+
+
+@pytest.fixture
+def openai_client():
+    SETTINGS = AppSettings()
+    os.environ["OPENAI_API_KEY"] = SETTINGS.OPENAI_API_KEY
+    return instructor.from_openai(
+        openai.OpenAI(api_key=SETTINGS.OPENAI_API_KEY),
+        mode=instructor.Mode.JSON,
+    )
+
+
+@pytest.fixture
+def mock_openai_chat_completion(llm_response_format):
+    def mock_create(**kwargs):
+        mock_response = MagicMock()
+        mock_response.choices = [
+            MagicMock(message=MagicMock(content=llm_response_format()))
+        ]
+        return mock_response
+
+    return mock_create

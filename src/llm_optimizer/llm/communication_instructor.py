@@ -1,5 +1,7 @@
+from httpx import HTTPStatusError
 import inspect
 import instructor
+import instructor.exceptions
 import openai
 import os
 from pydantic import ValidationError
@@ -21,8 +23,11 @@ def get_llm_pyomo_model(
     client: instructor.Instructor,
     user_input: str,
     validate_input: bool = True,
-    llm_prompt_settings=dict(temperature=0.2, max_tokens=2048),
+    llm_prompt_settings: dict = dict(temperature=0.2, max_tokens=2048),
 ) -> LinearOptimizationModel:
+    if not user_input:
+        raise ValueError("No problem formulation given")
+
     if validate_input:
         is_optimization_problem = validate_optimization_problem(user_input, client)
         logging.debug(
@@ -61,7 +66,7 @@ def get_llm_pyomo_model(
     ''')
 
     pyomo_model: LinearOptimizationModel = client.chat.completions.create(
-        max_retries=2,
+        max_retries=1,
         model="gpt-4o",
         response_model=LinearOptimizationModel,
         max_tokens=llm_prompt_settings.get("max_tokens", 1024),
@@ -110,6 +115,9 @@ def ask_llm_for_pyomo_model(
     max_retries: int = 1,
     mock: bool = False,
 ) -> LinearOptimizationModel:
+    if max_retries < 0:
+        raise ValueError
+
     if mock:
         import json
         from pathlib import Path
@@ -139,9 +147,14 @@ def ask_llm_for_pyomo_model(
                 llm_prompt_settings=llm_prompt_settings,
             )
             logging.debug(llm_pyomo_model.model_dump_json(indent=2))
-        except ValidationError as e:
-            logging.debug(e.args)
-            return LinearOptimizationModel()
+        except (
+            HTTPStatusError,
+            instructor.exceptions.InstructorRetryException,
+            ValidationError,
+            ValueError,
+        ) as e:
+            llm_pyomo_model = LinearOptimizationModel.empty()
+            llm_pyomo_model.error_message = str(e)
         else:
             break
 
