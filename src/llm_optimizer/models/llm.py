@@ -133,7 +133,20 @@ class LinearOptimizationModel(BaseModel):
         description="list of pyomo model constraints, each defined as `pyo.Constraint()'",
     )
     problem_str: SkipJsonSchema[Union[str, None]] = None
-    # error_message: str = Field(..., description="Error message, if it is not possible to correctly formulate the pyomo model with the given return type structure")
+    error_message: SkipJsonSchema[Union[str, None]] = None
+
+    @classmethod
+    def empty(cls) -> "LinearOptimizationModel":  # Self
+        return cls(
+            mathematical_formulation="",
+            objective=ObjectiveFunction(
+                indexes=None, rule=None, optimization_sense="maximize", doc=""
+            ),
+            sets=[],
+            parameters=[],
+            variables=[],
+            constraints=[],
+        )
 
 
 class MaybeLinearOptimizationModel(BaseModel):

@@ -12,20 +12,26 @@ from llm_optimizer.calculations.lin_optimization_logic import (
     solve,
 )
 
-st.title("Linear Optimization Assistant")
 
-with st.form("Task"):
-    task = st.text_area("Insert a problem formulation in natural language:")
-    submit_button = st.form_submit_button("Solve")
+def main():
+    st.title("Linear Optimization Assistant")
 
-if submit_button:
-    if not task:
-        st.error("no input given")
+    with st.form("Task"):
+        task = st.text_area("Insert a problem formulation in natural language:")
+        submit_button = st.form_submit_button("Solve")
 
-    else:
+    if submit_button:
+        if not task:
+            st.error("no input given")
+            return
+
         structured_llm_response: LinearOptimizationModel = ask_llm_for_pyomo_model(
             task, validate_input=False, max_retries=1, mock=False
         )
+
+        if structured_llm_response.error_message:
+            st.error(structured_llm_response.error_message, icon="🚨")
+            return
 
         pyomo_model = construct_pyomo_model(structured_llm_response)
         results, solution = solve(pyomo_model)
@@ -56,3 +62,7 @@ if submit_button:
         with (outstream := io.StringIO()):
             solution.pprint(ostream=outstream)
             st.text_area("model.pprint()", outstream.getvalue(), height=400)
+
+
+if __name__ == "__main__":
+    main()
