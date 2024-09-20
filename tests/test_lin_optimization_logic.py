@@ -34,15 +34,13 @@ def test_construct_pyomo_model_no_objective(llm_response_format):
 def test_construct_pyomo_model_wrong_optimization_sense(llm_response_format):
     input = llm_response_format(
         objective="""{
-        "indexes": null,
-        "expr": "model.x",
-        "rule": null,
-        "optimization_sense": "wrong_value",
-        "doc": ""
-    }"""
+            "indexes": null,
+            "expr": "model.x",
+            "rule": null,
+            "optimization_sense": "wrong_value",
+            "doc": ""
+        }"""
     )
-
-    print(input)
 
     with pytest.raises(ValidationError):
         construct_pyomo_model(LinearOptimizationModel(**json.loads(input)))
@@ -51,12 +49,12 @@ def test_construct_pyomo_model_wrong_optimization_sense(llm_response_format):
 def test_construct_pyomo_model_no_objective_rule(llm_response_format):
     input = llm_response_format(
         objective="""{
-        "indexes": null,
-        "expr": null,
-        "rule": null,
-        "optimization_sense": "maximize",
-        "doc": ""
-    }"""
+            "indexes": null,
+            "expr": null,
+            "rule": null,
+            "optimization_sense": "maximize",
+            "doc": ""
+        }"""
     )
 
     with pytest.raises(RuleError):
